@@ -1,0 +1,13 @@
+venv/
+env/
+.env
+
+*.csv
+*.json
+data/
+!data/.gitkeep
+
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
