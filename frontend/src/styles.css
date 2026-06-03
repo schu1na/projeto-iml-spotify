@@ -1,0 +1,135 @@
+/* ===========================
+   Global Styles & Theme System
+   =========================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* ---- Dark Theme (default — Spotify-inspired) ---- */
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #121212;
+  --bg-card: #181818;
+  --bg-card-hover: #282828;
+  --bg-input: #1a1a2e;
+  --bg-input-focus: #1e1e3a;
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+  --text-muted: #6a6a6a;
+  --text-placeholder: #535353;
+
+  --accent-green: #1db954;
+  --accent-green-hover: #1ed760;
+  --accent-green-glow: rgba(29, 185, 84, 0.25);
+  --accent-purple: #8b5cf6;
+  --accent-purple-glow: rgba(139, 92, 246, 0.2);
+
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-focus: rgba(29, 185, 84, 0.5);
+
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-card-hover: 0 12px 48px rgba(0, 0, 0, 0.6);
+  --shadow-input: 0 4px 24px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 40px var(--accent-green-glow);
+
+  --gradient-hero: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0d1117 100%);
+  --gradient-card: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  --gradient-accent: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
+
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.08);
+
+  --toggle-bg: #282828;
+  --toggle-knob: #1db954;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  color-scheme: dark;
+}
+
+/* ---- Light Theme ---- */
+:root.light-theme {
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f3f5;
+  --bg-input: #f1f3f5;
+  --bg-input-focus: #e9ecef;
+  --bg-overlay: rgba(255, 255, 255, 0.8);
+
+  --text-primary: #1a1a2e;
+  --text-secondary: #495057;
+  --text-muted: #868e96;
+  --text-placeholder: #adb5bd;
+
+  --accent-green: #1db954;
+  --accent-green-hover: #1aa34a;
+  --accent-green-glow: rgba(29, 185, 84, 0.15);
+  --accent-purple: #7c3aed;
+  --accent-purple-glow: rgba(124, 58, 237, 0.12);
+
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-focus: rgba(29, 185, 84, 0.5);
+
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 8px 40px rgba(0, 0, 0, 0.12);
+  --shadow-input: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-glow: 0 0 30px var(--accent-green-glow);
+
+  --gradient-hero: linear-gradient(135deg, #f8f9fa 0%, #e8edf2 50%, #f0f4f8 100%);
+  --gradient-card: linear-gradient(145deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%);
+  --gradient-accent: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
+
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.08);
+
+  --toggle-bg: #e9ecef;
+  --toggle-knob: #1db954;
+
+  color-scheme: light;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  font-family: var(--font-family);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background var(--transition-normal), color var(--transition-normal);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
