@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { SearchBar } from './components/search-bar/search-bar';
 import { MusicCard, MusicData } from './components/music-card/music-card';
-import { ThemeService } from './services/theme';
+import { ThemeService } from './services/theme.service';
 
 @Component({
   selector: 'app-root',
