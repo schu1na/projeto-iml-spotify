@@ -17,15 +17,26 @@ sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
 ))
 
 def processar_recomendacoes(dados, modelos_ram):
+    """
+    Função principal do back-end que executa a pipeline de Machine Learning.
+    Recebe os dados da música do usuário e retorna 5 recomendações.
+    
+    Parâmetros:
+    - dados: Objeto contendo 'audio_features' (dicionário numérico) e 'filtrar_genero' (booleano).
+    - modelos_ram: Dicionário contendo os modelos pré-carregados (Siamesa, LGBM, NearestNeighbors, etc).
+    """
     try:
         features_dict = dados.audio_features
         deve_filtrar = dados.filtrar_genero
         
+        # Definição das colunas exatas que cada modelo espera.
+        # O LightGBM usa 'explicit' para ajudar na classificação de gênero.
         features_lgbm = [
             'danceability', 'energy', 'loudness', 'speechiness', 
             'acousticness', 'instrumentalness', 'liveness', 'valence', 'explicit'
         ]
         
+        # A Rede Siamesa mapeia a "vibe" usando apenas features contínuas.
         features_siamesa = [
             'danceability', 'energy', 'loudness', 'speechiness', 
             'acousticness', 'instrumentalness', 'liveness', 'valence'
@@ -39,6 +50,7 @@ def processar_recomendacoes(dados, modelos_ram):
         with torch.no_grad():
             embedding_busca = modelos_ram["siamesa"](tensor_entrada).numpy()
 
+        # Modo de busca puramente matemático
         if not deve_filtrar:
             print("Executando Modo: Espaço Latente Puro (Mais Próximos Globais)")
             distancias, indices = modelos_ram["buscador"].kneighbors(embedding_busca)
@@ -46,6 +58,7 @@ def processar_recomendacoes(dados, modelos_ram):
             modo_final = "pure_latent_space"
             genero_final = "N/A (Ignorado neste modo)"
 
+        # Modo de busca com filtro rígido por gênero
         else:
             print("Executando Modo: Filtro de Contexto Rígido por Gênero")
             cluster_previsto = int(modelos_ram["roteador"].predict(vetor_lgbm)[0])
@@ -65,6 +78,7 @@ def processar_recomendacoes(dados, modelos_ram):
             modo_final = "hard_genre_filter"
             genero_final = genero_previsto            
 
+        # Tratamento final e retorno
         lista_completa_limpa = [str(id_musica).strip().replace("'", "").replace('"', '') for id_musica in ids_recomendados]
 
         id_original = str(features_dict.get('track_id', '')).strip()
@@ -88,6 +102,16 @@ def processar_recomendacoes(dados, modelos_ram):
 
 
 def montar_informacoes_recomendacoes(lista_ids):
+    """
+    Realiza a busca das músicas no Spotify, fazendo a chamada à API para obter as informações
+    das músicas recomendadas, como nome, artista, álbum e URL da imagem.
+    
+    Parâmetros:
+    - lista_ids: Lista de IDs das músicas recomendadas.
+    
+    Retorno:
+    - Lista de dicionários contendo as informações estruturadas das músicas recomendadas.
+    """
     print("Buscando no Spotify os IDs exatos:", lista_ids)
     
     recomendacoes_estruturas = []
@@ -120,6 +144,15 @@ def montar_informacoes_recomendacoes(lista_ids):
 
 
 def buscar_sugestoes_por_texto(texto_busca: str):
+    """
+    Busca sugestões de músicas baseadas em um texto digitado pelo usuário.
+    
+    Parâmetros:
+    - texto_busca: Texto digitado pelo usuário.
+    
+    Retorno:
+    - Lista de dicionários contendo as informações estruturadas das músicas recomendadas.
+    """
     print(f"🔍 Buscando sugestões para: '{texto_busca}'...")
     
     # 1. Pede as 5 músicas mais relevantes para o texto digitado
@@ -150,6 +183,12 @@ def buscar_audio_features(track_id: str):
     """
     Busca as features de áudio de uma música específica no Spotify usando o Track ID.
     Retorna um dicionário formatado para uso imediato pelo frontend.
+    
+    Parâmetros:
+    - track_id: ID da música no Spotify.
+    
+    Retorno:
+    - Dicionário contendo as features de áudio da música.
     """
     try:
         # 1. Busca a música pelo ID exato
