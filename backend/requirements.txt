@@ -6,3 +6,7 @@ fastapi>=0.95
 uvicorn>=0.22.0
 scikit-learn>=1.2.2   
 seaborn>=0.13
+torch>=2.1.0
+nbformat>=4.2.0
+lightgbm
+spotipy
