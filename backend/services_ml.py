@@ -4,9 +4,12 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from sklearn.neighbors import NearestNeighbors
 from fastapi import HTTPException
+from dotenv import load_dotenv
 
-SPOTIPY_CLIENT_ID = "af0c6606f1634bb2886968b4bc8a7bab"
-SPOTIPY_CLIENT_SECRET = "8377270ae67145e7bc89dd4f4fc06878"
+load_dotenv()
+
+SPOTIPY_CLIENT_ID = os.getenv("SPOTIPY_CLIENT_ID")
+SPOTIPY_CLIENT_SECRET = os.getenv("SPOTIPY_CLIENT_SECRET")
 
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
     client_id=SPOTIPY_CLIENT_ID,

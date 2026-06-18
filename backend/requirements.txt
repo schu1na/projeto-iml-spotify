@@ -10,3 +10,4 @@ torch>=2.1.0
 nbformat>=4.2.0
 lightgbm
 spotipy
+python-dotenv
