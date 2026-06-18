@@ -11,3 +11,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 .ipynb_checkpoints/
+
+*.pkl
+*.pth
+*.npy
+*.h5
+*.joblib
+backend/models/
+
+.cache
