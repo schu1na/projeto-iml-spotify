@@ -2,62 +2,105 @@ import os
 import joblib
 import torch
 import numpy as np
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 # Importações dos seus novos arquivos modulares!
 from schemas import RequisicaoRecomendacao
 from redes_siamesas import MapeadorSiames
-from services_ml import processar_recomendacoes
+from services_ml import processar_recomendacoes, buscar_sugestoes_por_texto, buscar_audio_features
 
 modelos_ram = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Iniciando o Back-end e carregando a inteligência na memória RAM...")
-    DIRETORIO_MODELS = "models"
-
     # Constantes
     EMBEDDING_DIM = 32
     HIDDEN_SIZE = 64
-    INPUT_SIZE = 8
+    INPUT_SIZE = 9
 
-    # Roteador
-    caminho_roteador = os.path.join(DIRETORIO_MODELS, "lightgbm_roteador.pkl")
-    modelos_ram["roteador"] = joblib.load(caminho_roteador)
-    print("  -> Roteador LightGBM carregado.")
+    DIRETORIO_MODELS = "models"
+    DIRETORIO_MODELS_LIGHTGBM = "models/lightgbm"
+    DIRETORIO_MODELS_LR = "models/lr"
+
+    print("Iniciando o Back-end e carregando a inteligência na memória RAM...")
+
+    # Classificador - LightGBM
+    caminhoClasificadorLightGbmCluster = os.path.join(DIRETORIO_MODELS_LIGHTGBM, "lightgbm_roteador.pkl")
+    modelos_ram["ClasificadorLightGbmCluster"] = joblib.load(caminhoClasificadorLightGbmCluster)
+    print("  -> Classificador Light GBM para Clusters carregado.")
     
-    # Especialistas
-    modelos_ram["especialistas"] = {}
-    for arquivo in os.listdir(DIRETORIO_MODELS):
+    # Classificadores Especialistas - LightGBM
+    modelos_ram["especialistasLgbm"] = {}
+    for arquivo in os.listdir(DIRETORIO_MODELS_LIGHTGBM):
         if arquivo.startswith("lightgbm_especialista_cluster_") and arquivo.endswith(".pkl"):
 
             cluster_id = int(arquivo.split("_")[-1].split(".")[0])
-            caminho_esp = os.path.join(DIRETORIO_MODELS, arquivo)
+            caminho_esp = os.path.join(DIRETORIO_MODELS_LIGHTGBM, arquivo)
             
-            modelos_ram["especialistas"][cluster_id] = joblib.load(caminho_esp)
+            modelos_ram["especialistasLgbm"][cluster_id] = joblib.load(caminho_esp)
             
-    print(f"  -> {len(modelos_ram['especialistas'])} Modelos Especialistas carregados.")
+    print(f"  -> {len(modelos_ram['especialistasLgbm'])} Classificadores Especialistas LightGBM carregados.")
     
+    # Classificador - LR
+    caminhoClassificadorLRCluster = os.path.join(DIRETORIO_MODELS_LR, "lr_macrogenero.pkl")
+    caminhoScalerLRCluster = os.path.join(DIRETORIO_MODELS_LR, "scaler_global.pkl")
+    
+    modelos_ram["ClassificadorLRCluster"] = joblib.load(caminhoClassificadorLRCluster)
+    modelos_ram["ScalerLRCluster"] = joblib.load(caminhoScalerLRCluster)
+    print("  -> Classificador LR e Scaler de Cluster carregados.")
+    
+    # Classificadores Especialistas - LR
+    modelos_ram["especialistasLr"] = {}
+    for arquivo in os.listdir(DIRETORIO_MODELS_LR):
+        if arquivo.startswith("lr_especialista_") and arquivo.endswith(".pkl"):
+            vibe = arquivo[16:-4] 
+            caminho_esp_lr = os.path.join(DIRETORIO_MODELS_LR, arquivo)
+            
+            # Como salvamos um dicionário, ele já vem completo para a RAM
+            modelos_ram["especialistasLr"][vibe] = joblib.load(caminho_esp_lr)
+            
+    print(f"  -> {len(modelos_ram['especialistasLr'])} Especialistas LR carregados.")
 
     # Rede Siamesa
-    rede_siamesa = MapeadorSiames(input_size=INPUT_SIZE, embedding_dim=EMBEDDING_DIM, hidden_size=HIDDEN_SIZE) 
-    caminho_siamesa = os.path.join(DIRETORIO_MODELS, "rede_siamesa.pth")
-    rede_siamesa.load_state_dict(torch.load(caminho_siamesa, map_location=torch.device('cpu')))
-    rede_siamesa.eval()
-    modelos_ram["siamesa"] = rede_siamesa
+    redeSiamesa = MapeadorSiames(
+        input_size=INPUT_SIZE, 
+        embedding_dim=EMBEDDING_DIM, 
+        hidden_size=HIDDEN_SIZE) 
+    caminhoSiamesa = os.path.join(DIRETORIO_MODELS, "rede_siamesa.pth")
+    redeSiamesa.load_state_dict(torch.load(
+        caminhoSiamesa, 
+        map_location=torch.device('cpu'),
+        weights_only=True))
+    redeSiamesa.eval()
+    modelos_ram["redeSiamesa"] = redeSiamesa
     print("  -> Pesos da Rede Siamesa injetados.")
+
+    # Scaler rede siamesa
+    caminhoScalerSiamesa = os.path.join(DIRETORIO_MODELS, "scaler_siamesa.pkl")
+    modelos_ram["scalerSiamesa"] = joblib.load(caminhoScalerSiamesa)
+    print("  -> Scaler Siamesa carregado.")
     
+    # Embeddings
+    print("  -> Carregando matriz dos embeddings...")
+    modelos_ram["embeddings"] = np.load(os.path.join(DIRETORIO_MODELS, "todos_os_embeddings.npy"))
+    
+    # Buscador
+    buscador = joblib.load(os.path.join(DIRETORIO_MODELS, "buscador_knn.pkl"))
+    buscador.fit(modelos_ram["embeddings"])
+    modelos_ram["buscador"] = buscador
+    print("  -> Buscador NearestNeighbors re-indexado com sucesso.")
 
-    # Buscador e Matrizes
-    modelos_ram["buscador"] = joblib.load(os.path.join(DIRETORIO_MODELS, "buscador_knn.pkl"))
-    print("  -> Buscador NearestNeighbors indexado.")
+    # Generos e IDS
+    modelos_ram["generosMusicas"] = joblib.load(os.path.join(DIRETORIO_MODELS, "todos_os_generos.pkl"))
+    modelos_ram["listaIdsMusicas"] = joblib.load(os.path.join(DIRETORIO_MODELS, "lista_track_ids.pkl"))
+    print("  -> Listas de IDs e gêneros carregadas (Prontas para o Filtro Rígido).")
 
-    modelos_ram["todos_os_embeddings"] = np.load(os.path.join(DIRETORIO_MODELS, "todos_os_embeddings.npy"))
-    modelos_ram["todos_os_generos"] = joblib.load(os.path.join(DIRETORIO_MODELS, "todos_os_generos.pkl"))
-    modelos_ram["lista_ids"] = joblib.load(os.path.join(DIRETORIO_MODELS, "lista_track_ids.pkl"))
-    print("  -> Matriz global e lista de gêneros carregadas (Prontas para o Filtro Rígido).")
+    # Dicionário de audio features das músicas
+    caminhoMusicasLocais = os.path.join(DIRETORIO_MODELS, "dicionario_busca_musicas.pkl")
+    modelos_ram["DatasetMusicasLocais"] = joblib.load(caminhoMusicasLocais)
+    print("  -> Dicionário de Busca Offline carregado.")
     
     print("Todos os modelos estão na memória! Pronto para receber conexões.")
     yield
@@ -68,7 +111,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -79,13 +122,16 @@ def raiz():
     return {"status": "Back-end rodando com sucesso!", "modelos_carregados": list(modelos_ram.keys())}
 
 @app.post("/recomendar")
-def obter_recomendacoes(dados: RequisicaoRecomendacao):
+def obterRecomendacoes(dados: RequisicaoRecomendacao):
     return processar_recomendacoes(dados, modelos_ram)
 
 @app.get("/buscar-sugestoes")
-def buscar_sugestoes_por_texto(texto_busca: str):
-    return buscar_features_por_texto(texto_busca)
+def getSugestoes(texto_busca: str):
+    return buscar_sugestoes_por_texto(texto_busca, modelos_ram)
 
 @app.get("/buscar-audio-features")
-def buscar_audio_features_endpoint(track_id: str):
-    return buscar_audio_features(track_id)
+def getAudioFeatures(track_id: str):
+    resultado = buscar_audio_features(track_id, modelos_ram)
+    if not resultado:
+        raise HTTPException(status_code=404, detail="Música não encontrada na base local.")
+    return resultado
