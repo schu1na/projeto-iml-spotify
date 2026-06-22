@@ -14,10 +14,12 @@ export class RecomendacaoService {
   constructor(private http: HttpClient) { }
 
   // Função que envia o POST para o Python
-  obterRecomendacoes(features: AudioFeatures, usarFiltro: boolean = true): Observable<RespostaRecomendacao> {
+  obterRecomendacoes(track_id: string, features: AudioFeatures, usarFiltro: boolean = true, motorClassificacao: string = 'lightgbm'): Observable<RespostaRecomendacao> {
     const corpoRequisicao = {
+      track_id: track_id,
       audio_features: features,
-      filtrar_genero: usarFiltro
+      filtrar_genero: usarFiltro,
+      motor_classificacao: motorClassificacao
     };
 
     return this.http.post<RespostaRecomendacao>(`${this.apiUrl}/recomendar`, corpoRequisicao);

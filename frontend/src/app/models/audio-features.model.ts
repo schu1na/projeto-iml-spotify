@@ -8,5 +8,6 @@ export interface AudioFeatures {
   instrumentalness: number;
   liveness: number;
   valence: number;
-  explicit: boolean; 
+  explicit: boolean;
+  tempo: number;
 }

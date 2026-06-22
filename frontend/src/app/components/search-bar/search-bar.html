@@ -1,40 +1,68 @@
-<div class="search-container" [class.focused]="isFocused()">
-  <!-- Search Icon -->
-  <div class="search-icon">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
+<div class="search-wrapper">
+
+  <div class="search-controls">
+    
+    <div class="engine-selector">
+      <div class="toggle-group">
+        <input type="radio" id="engine-lgbm" name="engine" value="lightgbm" 
+               [ngModel]="motorClassificacao()" (ngModelChange)="motorClassificacao.set($event)">
+        <label for="engine-lgbm">LightGBM</label>
+        
+        <input type="radio" id="engine-rl" name="engine" value="linear" 
+               [ngModel]="motorClassificacao()" (ngModelChange)="motorClassificacao.set($event)">
+        <label for="engine-rl">Linear</label>
+      </div>
+    </div>
+
+    <div class="filter-switch">
+      <span class="control-label">Filtrar por Gênero Estimado</span>
+      <label class="switch">
+        <input type="checkbox" [ngModel]="filtrarGenero()" (ngModelChange)="mudarFiltroGenero()">
+        <span class="slider round"></span>
+      </label>
+    </div>
+
   </div>
 
-  <!-- Input Field -->
-  <input #searchInput id="search-input" type="text" placeholder="O que você quer ouvir?" [ngModel]="searchQuery()"
-    (ngModelChange)="onInputChange($event)" (focus)="onFocus()" (blur)="onBlur()" (keydown.enter)="onSubmit()"
-    autocomplete="off" spellcheck="false" />
+  <div class="search-container" [class.focused]="isFocused()">
+    <!-- Search Icon -->
+    <div class="search-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </svg>
+    </div>
 
-  <!-- Clear Button -->
-  @if (searchQuery().length > 0) {
-  <button class="clear-btn" (click)="onInputChange(''); searchQuery.set('')" aria-label="Limpar pesquisa">
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
-    </svg>
-  </button>
-  }
-
+  
+    <!-- Input Field -->
+    <input #searchInput id="search-input" type="text" placeholder="O que você quer ouvir?" [ngModel]="searchQuery()"
+      (ngModelChange)="onInputChange($event)" (focus)="onFocus()" (blur)="onBlur()" (keydown.enter)="onEnter()"
+      autocomplete="off" spellcheck="false" />
+  
+    <!-- Clear Button -->
+    @if (searchQuery().length > 0) {
+    <button class="clear-btn" (click)="onInputChange(''); searchQuery.set('')" aria-label="Limpar pesquisa">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 6 6 18" />
+        <path d="m6 6 12 12" />
+      </svg>
+    </button>
+    }
+  
+  </div>
   <!-- Suggestions Dropdown -->
   @if (showSuggestions()) {
   <div class="suggestions-dropdown">
-    @for (suggestion of filteredSuggestions(); track suggestion) {
-    <button class="suggestion-item" (mousedown)="selectSuggestion(suggestion)">
+    @for (suggestion of listaSugestoes(); track suggestion.id) {
+    <button class="suggestion-item" (mousedown)="selecionarSugestao(suggestion)">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="suggestion-icon">
         <circle cx="12" cy="12" r="10" />
         <path d="M9 12 l2 2 4-4" />
       </svg>
-      <span>{{ suggestion }}</span>
+      <span>{{ suggestion.nome }} - {{ suggestion.artista }}</span>
     </button>
     }
   </div>

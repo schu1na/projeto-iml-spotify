@@ -17,8 +17,12 @@ export class SearchBar {
   readonly carregandoSugestoes = signal(false);
   readonly showSuggestions = signal(false);
   readonly isFocused = signal(false);
-  
+  readonly motorClassificacao = signal<'lightgbm' | 'linear'>('lightgbm');
+  readonly filtrarGenero = signal<boolean>(false);
+
   readonly search = output<SugestaoMusica>();
+  readonly filtroGeneroOutput = output<boolean>()
+  readonly motorClassificacaoOutput = output<string>()
   
   private readonly inputRef = viewChild<ElementRef>('searchInput');
   
@@ -81,9 +85,28 @@ export class SearchBar {
     }, 200);
   }
 
+  onEnter(): void {
+    const sugestoesAtuais = this.listaSugestoes(); 
+    
+    if (sugestoesAtuais && sugestoesAtuais.length > 0) {
+      this.selecionarSugestao(sugestoesAtuais[0]);
+    } else {
+      this.showSuggestions.set(false);
+    }
+  }
+
+  mudarFiltroGenero() {
+    this.filtrarGenero.set(!this.filtrarGenero());
+  }
+
   selecionarSugestao(sugestao: SugestaoMusica): void {
-    this.searchQuery.set(`${sugestao.nome} - ${sugestao.artista}`);
+    this.searchQuery.set("");
     this.showSuggestions.set(false);
+    // Emite os parâmetros ANTES de emitir a busca,
+    // pois Angular processa outputs de forma síncrona —
+    // onSearch no pai rodaria com valores antigos se emitíssemos depois.
+    this.filtroGeneroOutput.emit(this.filtrarGenero());
+    this.motorClassificacaoOutput.emit(this.motorClassificacao());
     this.search.emit(sugestao);
   }
 

@@ -15,6 +15,10 @@
     border-color var(--transition-normal);
   cursor: pointer;
   animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .music-card:hover {
@@ -40,6 +44,9 @@
   position: relative;
   aspect-ratio: 1 / 1;
   overflow: hidden;
+  
+  /* Garante que o container interno não suma no grid/flex */
+  display: block; 
 }
 
 .cover-image {
@@ -104,6 +111,9 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+
+  flex-grow: 1; 
+  justify-content: space-between;
 }
 
 .track-title {
