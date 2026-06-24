@@ -10,4 +10,6 @@ export interface AudioFeatures {
   valence: number;
   explicit: boolean;
   tempo: number;
+  key: number;
+  mode: number;
 }

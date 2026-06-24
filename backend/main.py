@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 
 # Importações dos seus novos arquivos modulares!
 from schemas import RequisicaoRecomendacao
-from redes_siamesas import MapeadorSiames
+from redes_siamesas import SiameseNetwork
 from services_ml import processar_recomendacoes, buscar_sugestoes_por_texto, buscar_audio_features
 
 modelos_ram = {}
@@ -17,8 +17,8 @@ modelos_ram = {}
 async def lifespan(app: FastAPI):
     # Constantes
     EMBEDDING_DIM = 32
-    HIDDEN_SIZE = 64
-    INPUT_SIZE = 9
+    HIDDEN_SIZE = 128
+    INPUT_SIZE = 11
 
     DIRETORIO_MODELS = "models"
     DIRETORIO_MODELS_LIGHTGBM = "models/lightgbm"
@@ -64,10 +64,10 @@ async def lifespan(app: FastAPI):
     print(f"  -> {len(modelos_ram['especialistasLr'])} Especialistas LR carregados.")
 
     # Rede Siamesa
-    redeSiamesa = MapeadorSiames(
+    redeSiamesa = SiameseNetwork(
         input_size=INPUT_SIZE, 
-        embedding_dim=EMBEDDING_DIM, 
-        hidden_size=HIDDEN_SIZE) 
+        hidden_size=HIDDEN_SIZE,
+        embedding_dim=EMBEDDING_DIM) 
     caminhoSiamesa = os.path.join(DIRETORIO_MODELS, "rede_siamesa.pth")
     redeSiamesa.load_state_dict(torch.load(
         caminhoSiamesa, 

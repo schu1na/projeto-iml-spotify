@@ -43,7 +43,7 @@ def processar_recomendacoes(dados, modelos_ram):
         featuresSiamesa = [
             'danceability', 'energy', 'loudness', 
             'speechiness', 'acousticness', 'instrumentalness', 
-            'liveness', 'valence', 'tempo'
+            'liveness', 'valence', 'tempo', 'key', 'mode'
         ]
 
         vetor_lgbm = np.array([[featuresDict[f] for f in featuresLgbm]], dtype=np.float32)
@@ -63,7 +63,7 @@ def processar_recomendacoes(dados, modelos_ram):
             tensor_entrada = torch.tensor(vetor_siamesa_normalizado, dtype=torch.float32)
             
             with torch.no_grad():
-                embedding_busca = modelos_ram["redeSiamesa"](tensor_entrada).numpy()
+                embedding_busca = modelos_ram["redeSiamesa"].forward_once(tensor_entrada).numpy()
 
         # Classificação de gênero — sempre executada, independentemente do filtro
         if motor_classificacao == "linear":
