@@ -101,6 +101,11 @@ async def lifespan(app: FastAPI):
     caminhoMusicasLocais = os.path.join(DIRETORIO_MODELS, "dicionario_busca_musicas.pkl")
     modelos_ram["DatasetMusicasLocais"] = joblib.load(caminhoMusicasLocais)
     print("  -> Dicionário de Busca Offline carregado.")
+
+    # Clusters
+    caminhoClusters = os.path.join(DIRETORIO_MODELS, "todos_os_clusters.pkl")
+    modelos_ram["Clusters"] = joblib.load(caminhoClusters)
+    print("  -> Clusters carregados.")
     
     print("Todos os modelos estão na memória! Pronto para receber conexões.")
     yield

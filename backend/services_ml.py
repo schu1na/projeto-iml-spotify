@@ -152,7 +152,7 @@ def montar_informacoes_recomendacoes(lista_ids, modelos_ram):
                 info_musica = {
                     "id": track.get('id', ''),
                     "nome": track.get('name', 'Desconhecido'),
-                    "artista": track['artists'][0]['name'] if track.get('artists') else 'Desconhecido', 
+                    "artista": ', '.join(a['name'] for a in track['artists']) if track.get('artists') else 'Desconhecido', 
                     "duracao": track.get('duration_ms', ''),
                     "album": track['album']['name'] if track.get('album') else 'Desconhecido',
                     "imagem_url": track['album']['images'][0]['url'] if track.get('album') and track['album'].get('images') else "",
@@ -198,7 +198,7 @@ def buscar_sugestoes_por_texto(texto_busca: str, modelos_ram: dict):
             }
             sugestoes_limpas.append(sugestao)
             
-            if len(sugestoes_limpas) == 5:
+            if len(sugestoes_limpas) == 8:
                 break
                 
     return sugestoes_limpas

@@ -7,11 +7,10 @@ import { MusicaRecomendada } from './models/musica-recomendada.model';
 import { RecomendacaoService } from './services/recomendacao.service';
 import { AudioFeatures } from './models/audio-features.model';
 import { switchMap } from 'rxjs';
-import { DecimalPipe } from '@angular/common';
 
 @Component({
   selector: 'app-root',
-  imports: [SearchBar, MusicCard, DecimalPipe],
+  imports: [SearchBar, MusicCard],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
